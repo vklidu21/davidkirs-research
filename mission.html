@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mission Hub — David Kirš</title>
+<style>
+/* ═══════════════════════════════════════════════════════
+   MISSION CONTROL — CSS
+   ═══════════════════════════════════════════════════════ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0f0f1a;
+  --card: #1a1a2e;
+  --card-hover: #1f1f35;
+  --surface: #16162a;
+  --border: #2a2a45;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --personal: #6366f1;
+  --buddypro: #7c3aed;
+  --poinciana: #10b981;
+  --me2: #f472b6;
+}
+
+html {
+  font-size: 15px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.5;
+}
+
+/* ── Background Pattern ────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(99, 102, 241, 0.06) 1px, transparent 0);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ambient glow orbs */
+body::after {
+  content: '';
+  position: fixed;
+  top: -200px; left: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: ambientDrift 20s ease-in-out infinite alternate;
+}
+
+@keyframes ambientDrift {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(30vw, 20vh); }
+}
+
+.ambient-orb-2 {
+  position: fixed;
+  bottom: -200px; right: -200px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(244, 114, 182, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  animation: ambientDrift2 25s ease-in-out infinite alternate;
+}
+
+@keyframes ambientDrift2 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-25vw, -15vh); }
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 2600px;
+  margin: 0 auto;
+  padding: 24px 48px;
+}
+
+/* ── HEADER ────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0 28px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.header-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-title .rocket {
+  -webkit-text-fill-color: initial;
+}
+
+.header-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.header-center {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.tz-clock {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px;
+  background: var(--surface);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  min-width: 130px;
+  position: relative;
+}
+
+.tz-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.tz-time {
+  font-size: 1.3rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  letter-spacing: 1px;
+  line-height: 1.2;
+}
+
+.tz-bottom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1px;
+}
+
+.tz-label-name {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.tz-date {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.tz-offset {
+  font-size: 0.6rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.tz-offset.behind {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+}
+
+.tz-offset.ahead {
+  background: rgba(52, 211, 153, 0.12);
+  color: #34d399;
+}
+
+.tz-offset.zero {
+  background: rgba(99, 102, 241, 0.12);
+  color: #a5b4fc;
+}
+
+/* Analog clock */
+.tz-analog {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  position: relative;
+  background: rgba(0,0,0,0.3);
+  flex-shrink: 0;
+}
+
+.tz-analog .hand {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  transform-origin: bottom center;
+  border-radius: 2px;
+}
+
+.tz-analog .hand-hour {
+  width: 2px;
+  height: 10px;
+  background: var(--text);
+  margin-left: -1px;
+}
+
+.tz-analog .hand-minute {
+  width: 1.5px;
+  height: 13px;
+  background: var(--text-muted);
+  margin-left: -0.75px;
+}
+
+.tz-analog .hand-dot {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--accent, var(--text));
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.tz-clock.primary {
+  border-color: rgba(99, 102, 241, 0.3);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.tz-clock.primary .tz-time {
+  font-size: 1.4rem;
+  color: #a5b4fc;
+}
+
+.tz-clock.primary .tz-analog {
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.header-right {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.stat {
+  text-align: center;
+  padding: 8px 16px;
+  background: var(--surface);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  min-width: 80px;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.stat.total .stat-value { color: #e2e8f0; }
+.stat.progress .stat-value { color: #fbbf24; }
+.stat.done .stat-value { color: #34d399; }
+
+/* ── GRID ──────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 1200px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 700px) {
+  .grid { grid-template-columns: 1fr; }
+  .app { padding: 16px; }
+  .header { flex-direction: column; align-items: flex-start; }
+  .header-center { gap: 10px; flex-wrap: wrap; }
+  .tz-clock { min-width: 90px; padding: 4px 10px; }
+  .tz-time { font-size: 1rem !important; }
+  .header-right { width: 100%; justify-content: space-between; }
+  .footer { flex-direction: column; text-align: center; }
+}
+
+/* ── PROJECT CARD ──────────────────────────────────── */
+.project-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(24px);
+  animation: cardAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.project-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    var(--accent) 0%,
+    transparent 40%,
+    transparent 60%,
+    rgba(255,255,255,0.05) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.project-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 0 48px color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.project-card:nth-child(1) { animation-delay: 0.1s; }
+.project-card:nth-child(2) { animation-delay: 0.2s; }
+.project-card:nth-child(3) { animation-delay: 0.3s; }
+.project-card:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes cardAppear {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card glow */
+.card-glow {
+  position: absolute;
+  top: -1px;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+/* ── Project Header ────────────────────────────────── */
+.project-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.project-emoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.project-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.project-badge {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  margin-left: auto;
+}
+
+/* ── Vision Box ────────────────────────────────────── */
+.vision-box {
+  position: relative;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.15);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  overflow: hidden;
+  font-style: italic;
+  text-align: center;
+}
+
+.vision-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  padding: 1px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 40%, transparent), transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.vision-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: color-mix(in srgb, var(--accent) 50%, var(--text-dim));
+  font-weight: 600;
+  margin-bottom: 3px;
+  font-style: normal;
+  text-align: center;
+}
+
+.vision-text {
+  color: color-mix(in srgb, var(--accent) 40%, var(--text-dim));
+  cursor: text;
+}
+
+/* ── Target State (Milník) ─────────────────────────── */
+.target-box {
+  position: relative;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.25);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  overflow: hidden;
+}
+
+.target-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 30%, transparent));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.target-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.target-text {
+  color: color-mix(in srgb, var(--accent) 60%, var(--text));
+  cursor: text;
+}
+
+/* ── Editable fields ───────────────────────────────── */
+.editable:hover {
+  outline: 1px dashed rgba(255,255,255,0.15);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.editable:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+  color: var(--text);
+}
+
+/* ── Progress Bar ──────────────────────────────────── */
+.progress-section {
+  margin-bottom: 18px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.progress-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+}
+
+.progress-pct {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-bar {
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #fff));
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 40%, transparent);
+  width: 0;
+}
+
+/* ── Tasks ──────────────────────────────────────────── */
+.tasks-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.task {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.task:hover {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.05);
+}
+
+.task-status {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  width: 20px;
+  text-align: center;
+}
+
+.task-status.pulse {
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.task-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-title {
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.task.done .task-title {
+  text-decoration: line-through;
+  color: var(--text-dim);
+}
+
+.task-meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.priority-badge {
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.priority-high {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+}
+
+.priority-normal {
+  display: none;
+}
+
+.badge-recurring {
+  background: rgba(96, 165, 250, 0.12);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.task-notes {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+  display: none;
+  animation: notesAppear 0.2s ease;
+  border-left: 2px solid var(--accent);
+}
+
+.task.expanded .task-notes {
+  display: block;
+}
+
+@keyframes notesAppear {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Add Task Button ───────────────────────────────── */
+.add-task-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: 1px dashed rgba(255,255,255,0.1);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  width: 100%;
+}
+
+.add-task-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+
+/* ── Toggle ────────────────────────────────────────── */
+.toggle-section {
+  text-align: center;
+  margin: 8px 0 24px;
+}
+
+.toggle-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background: var(--card);
+  color: var(--text);
+  border-color: rgba(255,255,255,0.15);
+}
+
+/* ── Footer ────────────────────────────────────────── */
+.footer {
+  text-align: center;
+  padding: 20px 0 12px;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.footer-day {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.footer-powered {
+  opacity: 0.6;
+}
+
+/* ── Drag & Drop ───────────────────────────────────── */
+.task.dragging {
+  opacity: 0.4;
+  transform: scale(0.95);
+}
+
+.project-card.drag-over .tasks-section {
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  outline: 2px dashed rgba(255,255,255,0.15);
+  outline-offset: 4px;
+}
+
+.task {
+  user-select: none;
+  cursor: grab;
+}
+
+.task:active {
+  cursor: grabbing;
+}
+
+/* ── Done Today Zone ───────────────────────────────── */
+.done-today {
+  margin-top: auto;
+  border-top: 1px dashed rgba(255,255,255,0.08);
+  padding-top: 10px;
+}
+
+.done-today-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.done-today-count {
+  background: rgba(52, 211, 153, 0.15);
+  color: #34d399;
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.done-today-drop {
+  min-height: 40px;
+  border: 1px dashed rgba(52, 211, 153, 0.15);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  transition: all 0.2s ease;
+}
+
+.done-today-drop.drag-over-done {
+  border-color: rgba(52, 211, 153, 0.5);
+  background: rgba(52, 211, 153, 0.05);
+}
+
+.done-today-drop .task {
+  opacity: 0.7;
+}
+
+.done-today-empty {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-align: center;
+  padding: 8px;
+  opacity: 0.5;
+}
+
+/* ── Add Task Form ─────────────────────────────────── */
+.add-task-form {
+  display: none;
+  margin-top: 8px;
+  padding: 10px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.add-task-form.visible {
+  display: block;
+  animation: notesAppear 0.2s ease;
+}
+
+.add-task-input {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.add-task-input:focus {
+  border-color: var(--accent);
+}
+
+.add-task-input::placeholder {
+  color: var(--text-dim);
+}
+
+.add-task-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  align-items: center;
+}
+
+.add-task-toggle {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  opacity: 0.5;
+}
+
+.add-task-toggle.active {
+  opacity: 1;
+  border-color: rgba(251, 191, 36, 0.4);
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+}
+
+.add-task-toggle.active-recurring {
+  opacity: 1;
+  border-color: rgba(96, 165, 250, 0.4);
+  background: rgba(96, 165, 250, 0.1);
+  color: #60a5fa;
+}
+
+.add-task-submit {
+  padding: 5px 14px;
+  border-radius: 6px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  margin-left: auto;
+}
+
+.add-task-submit:hover {
+  opacity: 0.85;
+}
+
+.add-task-cancel {
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.add-task-date-row {
+  display: flex;
+  gap: 5px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.add-task-date-row label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-right: 2px;
+}
+
+.date-chip {
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.date-chip:hover {
+  border-color: rgba(99, 102, 241, 0.4);
+  color: var(--text-muted);
+}
+
+.date-chip.active {
+  border-color: rgba(99, 102, 241, 0.5);
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+}
+
+.date-chip-exact {
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color-scheme: dark;
+  width: 28px;
+}
+
+.date-chip-exact::-webkit-calendar-picker-indicator {
+  filter: invert(0.6);
+  cursor: pointer;
+}
+
+.date-chip-exact.active {
+  border-color: rgba(99, 102, 241, 0.5);
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  width: auto;
+}
+
+.task-due {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.task-due.overdue {
+  color: #f87171;
+}
+
+.task-due.today {
+  color: #fbbf24;
+}
+
+.task-due.soon {
+  color: #60a5fa;
+}
+
+/* ── Scrollbar ─────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+/* ── Selection ─────────────────────────────────────── */
+::selection {
+  background: rgba(99, 102, 241, 0.3);
+}
+.talk-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: 1rem;
+  padding: 0.4rem 0.8rem;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-decoration: none;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s;
+  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+}
+.talk-mode-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.5);
+}
+</style>
+</head>
+<body>
+
+<div class="ambient-orb-2"></div>
+
+<div class="app">
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <h1 class="header-title"><span class="rocket">🚀</span> Mission Hub</h1>
+      <span class="header-subtitle">by Angelic Intelligence</span>
+      <a href="talk-mode.html" class="talk-mode-btn" title="Talk to Angel">🎙️ Talk Mode</a>
+        <a href="../time-chamber/index.html" class="talk-mode-btn" title="Time Chamber Coach" style="margin-left:8px;">⏳ Time Chamber</a>
+    </div>
+    <div class="header-center">
+      <div class="tz-clock primary" id="tzBali">
+        <div class="tz-analog" id="analogBali"><div class="hand hand-hour"></div><div class="hand hand-minute"></div><div class="hand-dot"></div></div>
+        <div class="tz-info">
+          <div class="tz-time" id="clockBali">--:--</div>
+          <div class="tz-bottom">
+            <span class="tz-label-name">🌴 Bali</span>
+            <span class="tz-offset zero">BASE</span>
+            <span class="tz-date" id="dateBali">--</span>
+          </div>
+        </div>
+      </div>
+      <div class="tz-clock" id="tzPraha">
+        <div class="tz-analog" id="analogPraha"><div class="hand hand-hour"></div><div class="hand hand-minute"></div><div class="hand-dot"></div></div>
+        <div class="tz-info">
+          <div class="tz-time" id="clockPraha">--:--</div>
+          <div class="tz-bottom">
+            <span class="tz-label-name">🏰 Praha</span>
+            <span class="tz-offset behind" id="offsetPraha">-7h</span>
+            <span class="tz-date" id="datePraha">--</span>
+          </div>
+        </div>
+      </div>
+      <div class="tz-clock" id="tzSD">
+        <div class="tz-analog" id="analogSD"><div class="hand hand-hour"></div><div class="hand hand-minute"></div><div class="hand-dot"></div></div>
+        <div class="tz-info">
+          <div class="tz-time" id="clockSD">--:--</div>
+          <div class="tz-bottom">
+            <span class="tz-label-name">🌊 San Diego</span>
+            <span class="tz-offset behind" id="offsetSD">-16h</span>
+            <span class="tz-date" id="dateSD">--</span>
+          </div>
+        </div>
+      </div>
+      <div class="tz-clock" id="tzSydney">
+        <div class="tz-analog" id="analogSydney"><div class="hand hand-hour"></div><div class="hand hand-minute"></div><div class="hand-dot"></div></div>
+        <div class="tz-info">
+          <div class="tz-time" id="clockSydney">--:--</div>
+          <div class="tz-bottom">
+            <span class="tz-label-name">🦘 Sydney</span>
+            <span class="tz-offset ahead" id="offsetSydney">+3h</span>
+            <span class="tz-date" id="dateSydney">--</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="stat total">
+        <div class="stat-value" id="statTotal">-</div>
+        <div class="stat-label">Celkem</div>
+      </div>
+      <div class="stat progress">
+        <div class="stat-value" id="statProgress">-</div>
+        <div class="stat-label">Probíhá</div>
+      </div>
+      <div class="stat done">
+        <div class="stat-value" id="statDone">-</div>
+        <div class="stat-label">Hotovo</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- GRID -->
+  <div class="grid" id="grid"></div>
+
+  <!-- TOGGLE -->
+  <div class="toggle-section">
+    <button class="toggle-btn" id="toggleDone" onclick="toggleCompleted()">
+      👁 Zobrazit dokončené
+    </button>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <span>Poslední aktualizace: <span id="lastUpdated">---</span></span>
+    <span class="footer-day" id="footerDay">---</span>
+    <span class="footer-powered">Powered by BuddyAI 😇</span>
+  </footer>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   MISSION HUB — EMBEDDED DATA (fallback for file:// protocol)
+   ═══════════════════════════════════════════════════════ */
+
+const EMBEDDED_PROJECTS = {
+  "projects": [
+    {
+      "id": "personal",
+      "name": "Osobní",
+      "emoji": "🏠",
+      "color": "#6366f1",
+      "vision": "Plně autonomní AI-řízený život — systémy, které pracují za mě",
+      "target": "AI-powered osobní systém — email, úkoly, finance automatizované",
+      "order": 1
+    },
+    {
+      "id": "buddypro",
+      "name": "CEO BuddyPro",
+      "emoji": "🤖",
+      "color": "#7c3aed",
+      "vision": "Každý člověk má svého AI Buddyho — globální platforma pro AI asistenty",
+      "target": "MVP produkt + první platící zákazníci",
+      "order": 2
+    },
+    {
+      "id": "poinciana",
+      "name": "Poinciana",
+      "emoji": "🌺",
+      "color": "#10b981",
+      "vision": "Síť AI-řízených retreat center po celém světě — Poinciana Global",
+      "target": "Poinciana Village PT založena, ResortOS v1 ready",
+      "order": 3
+    },
+    {
+      "id": "me2",
+      "name": "ME²",
+      "emoji": "🎤",
+      "color": "#f472b6",
+      "vision": "Nová generace vzdělání — kde se člověk pozná, ne jen naučí",
+      "target": "JÁ² UNIVERZITA spuštěna, první studenti",
+      "order": 4
+    },
+    {
+      "id": "joyselling",
+      "name": "Joy of Selling",
+      "emoji": "💰",
+      "color": "#eab308",
+      "vision": "Prodej jako radost — AI expert který pomáhá s prodejem a obchodem",
+      "target": "Joy of Selling bot aktivní, první uživatelé",
+      "order": 5
+    }
+  ]
+};
+
+const EMBEDDED_TASKS = {
+  "tasks": [
+    {"id": "t001", "title": "BuddyAI setup & integrace", "project": "personal", "status": "progress", "priority": "high", "notes": "Gmail, Drive, Sheets napojeno. Receipt app ready. Mission Control WIP."},
+    {"id": "t002", "title": "Receipt appka — automatické účtenky", "project": "personal", "status": "review", "priority": "high", "notes": "Script hotový, potřeba nastavit cron"},
+    {"id": "t003", "title": "Token optimizer — snížit AI náklady", "project": "personal", "status": "inbox", "priority": "normal"},
+    {"id": "t016", "title": "AI Org Chart", "project": "personal", "status": "inbox", "priority": "normal"},
+    {"id": "t017", "title": "AI EDU — Igor a spol", "project": "personal", "status": "inbox", "priority": "normal"},
+    {"id": "t018", "title": "$17 Product", "project": "personal", "status": "inbox", "priority": "normal"},
+    {"id": "t004", "title": "Product roadmap BuddyPro", "project": "buddypro", "status": "inbox", "priority": "normal"},
+    {"id": "t005", "title": "Projít BrandCore od Sebastiana", "project": "buddypro", "status": "progress", "priority": "normal", "notes": "Čekám na dokument BrandCore"},
+    {"id": "t006", "title": "Spolupráce s Evou — CEO role", "project": "buddypro", "status": "review", "priority": "high", "notes": "Human-AI CEO Tandem Model v1.0 hotový"},
+    {"id": "t007", "title": "Vysvětlit Dejvovi — posílit fokus na vývoj", "project": "buddypro", "status": "review", "priority": "high", "notes": "Agenda pro Socratic webinář připravena"},
+    {"id": "t008", "title": "Poinciana Global vision document", "project": "poinciana", "status": "inbox", "priority": "normal"},
+    {"id": "t009", "title": "Spolupráce s Fabiem", "project": "poinciana", "status": "progress", "priority": "high", "notes": "Komerční návrh přijat. Setup $2.5-3k + Build $7.5-9k + 3-5% commission."},
+    {"id": "t010", "title": "Předat info Nyomanovi", "project": "poinciana", "status": "assigned", "priority": "high"},
+    {"id": "t011", "title": "\"Protože vs. Aby\" keynote", "project": "me2", "status": "assigned", "priority": "high"},
+    {"id": "t012", "title": "\"Stíhám\" framework", "project": "me2", "status": "progress", "priority": "high"},
+    {"id": "t013", "title": "ME² koncept (4 vrstvy)", "project": "me2", "status": "progress", "priority": "normal"},
+    {"id": "t014", "title": "Content strategie pro ME²", "project": "me2", "status": "inbox", "priority": "normal"},
+    {"id": "t015", "title": "JÁ² UNIVERZITA — koncept", "project": "me2", "status": "inbox", "priority": "normal"}
+  ],
+  "lastUpdated": "2026-02-05T12:30:00+08:00"
+};
+
+/* ═══════════════════════════════════════════════════════
+   APP STATE
+   ═══════════════════════════════════════════════════════ */
+
+let projects = [];
+let tasks = [];
+let showCompleted = false;
+
+const STATUS_ORDER = { progress: 0, assigned: 1, inbox: 2, review: 3, done: 4 };
+const STATUS_ICONS = {
+  inbox:    '⬜',
+  assigned: '🔵',
+  progress: '🟡',
+  review:   '🟢',
+  done:     '✅'
+};
+const STATUS_LABELS = {
+  inbox:    'Inbox',
+  assigned: 'Přiřazeno',
+  progress: 'Probíhá',
+  review:   'Review',
+  done:     'Hotovo'
+};
+
+/* ═══════════════════════════════════════════════════════
+   DATA LOADING
+   ═══════════════════════════════════════════════════════ */
+
+async function loadJSON(path, fallback) {
+  try {
+    const resp = await fetch(path);
+    if (!resp.ok) throw new Error(resp.status);
+    return await resp.json();
+  } catch {
+    return fallback;
+  }
+}
+
+async function init() {
+  const [projData, taskData] = await Promise.all([
+    loadJSON('data/projects.json', EMBEDDED_PROJECTS),
+    loadJSON('data/tasks.json', EMBEDDED_TASKS)
+  ]);
+
+  projects = projData.projects.sort((a, b) => a.order - b.order);
+  tasks = taskData.tasks;
+
+  // Clear stale localStorage
+  try {
+    localStorage.removeItem('missionHub_tasks');
+    localStorage.removeItem('missionHub_projects');
+  } catch {}
+
+  document.getElementById('lastUpdated').textContent =
+    new Date(taskData.lastUpdated).toLocaleString('cs-CZ', { timeZone: 'Asia/Makassar' });
+
+  render();
+  updateStats();
+  startClock();
+}
+
+/* ═══════════════════════════════════════════════════════
+   CLOCK
+   ═══════════════════════════════════════════════════════ */
+
+const dayNames = ['Neděle', 'Pondělí', 'Úterý', 'Středa', 'Čtvrtek', 'Pátek', 'Sobota'];
+const monthNames = ['ledna', 'února', 'března', 'dubna', 'května', 'června',
+                    'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
+
+function getTzParts(tz) {
+  const now = new Date();
+  const time = now.toLocaleString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false, timeZone: tz });
+  const date = now.toLocaleString('cs-CZ', { day: 'numeric', month: 'short', timeZone: tz });
+  const h = parseInt(now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: tz }));
+  const m = parseInt(now.toLocaleString('en-US', { minute: 'numeric', timeZone: tz }));
+  return { time, date, h, m };
+}
+
+function setAnalogHands(analogId, h, m) {
+  const el = document.getElementById(analogId);
+  if (!el) return;
+  const hourHand = el.querySelector('.hand-hour');
+  const minHand = el.querySelector('.hand-minute');
+  const hourDeg = ((h % 12) + m / 60) * 30;
+  const minDeg = m * 6;
+  hourHand.style.transform = `rotate(${hourDeg}deg)`;
+  minHand.style.transform = `rotate(${minDeg}deg)`;
+}
+
+function updateClock() {
+  const zones = [
+    { tz: 'Asia/Makassar', clock: 'clockBali', date: 'dateBali', analog: 'analogBali', offset: null },
+    { tz: 'Europe/Prague', clock: 'clockPraha', date: 'datePraha', analog: 'analogPraha', offset: 'offsetPraha' },
+    { tz: 'America/Los_Angeles', clock: 'clockSD', date: 'dateSD', analog: 'analogSD', offset: 'offsetSD' },
+    { tz: 'Australia/Sydney', clock: 'clockSydney', date: 'dateSydney', analog: 'analogSydney', offset: 'offsetSydney' }
+  ];
+
+  const now = new Date();
+  const baliH = parseInt(now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Asia/Makassar' }));
+
+  function offsetStr(diff) {
+    if (diff === 0) return { text: 'BASE', cls: 'zero' };
+    const sign = diff > 0 ? '+' : '';
+    return { text: `${sign}${diff}h`, cls: diff < 0 ? 'behind' : 'ahead' };
+  }
+
+  zones.forEach(z => {
+    const p = getTzParts(z.tz);
+    document.getElementById(z.clock).textContent = p.time;
+    document.getElementById(z.date).textContent = p.date;
+    setAnalogHands(z.analog, p.h, p.m);
+
+    if (z.offset) {
+      const zH = parseInt(now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: z.tz }));
+      let diff = zH - baliH;
+      if (diff > 12) diff -= 24;
+      if (diff < -12) diff += 24;
+      const off = offsetStr(diff);
+      const el = document.getElementById(z.offset);
+      el.textContent = off.text;
+      el.className = 'tz-offset ' + off.cls;
+    }
+  });
+
+  // Footer day
+  const baliNow = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Makassar' }));
+  document.getElementById('footerDay').textContent =
+    `${dayNames[baliNow.getDay()]}, ${baliNow.getDate()}. ${monthNames[baliNow.getMonth()]} ${baliNow.getFullYear()}`;
+}
+
+function startClock() {
+  updateClock();
+  setInterval(updateClock, 1000);
+}
+
+/* ═══════════════════════════════════════════════════════
+   STATS
+   ═══════════════════════════════════════════════════════ */
+
+function updateStats() {
+  const total = tasks.length;
+  const inProgress = tasks.filter(t => t.status === 'progress').length;
+  const done = tasks.filter(t => t.status === 'done' || t.status === 'review').length;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statProgress').textContent = inProgress;
+  document.getElementById('statDone').textContent = done;
+}
+
+/* ═══════════════════════════════════════════════════════
+   RENDERING
+   ═══════════════════════════════════════════════════════ */
+
+function sortTasks(taskList) {
+  return taskList.sort((a, b) => {
+    // Priority first
+    const pA = a.priority === 'high' ? 0 : 1;
+    const pB = b.priority === 'high' ? 0 : 1;
+    if (pA !== pB) return pA - pB;
+    // Then by status order
+    return (STATUS_ORDER[a.status] || 9) - (STATUS_ORDER[b.status] || 9);
+  });
+}
+
+function getProgress(projectTasks) {
+  // Non-inbox tasks
+  const active = projectTasks.filter(t => t.status !== 'inbox');
+  if (active.length === 0) return 0;
+  const completed = active.filter(t => t.status === 'done' || t.status === 'review').length;
+  return Math.round((completed / active.length) * 100);
+}
+
+function render() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  projects.forEach(project => {
+    const projectTasks = tasks.filter(t => t.project === project.id);
+    const sorted = sortTasks([...projectTasks]);
+    const progress = getProgress(projectTasks);
+
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    card.dataset.projectId = project.id;
+    card.style.setProperty('--accent', project.color);
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const doneTodayTasks = projectTasks.filter(t => t.status === 'done' && t.completedAt && t.completedAt.startsWith(todayStr));
+    const activeTasks = showCompleted
+      ? sorted.filter(t => !(t.status === 'done' && t.completedAt && t.completedAt.startsWith(todayStr)))
+      : sorted.filter(t => t.status !== 'done');
+
+    card.innerHTML = `
+      <div class="card-glow"></div>
+
+      <div class="project-header">
+        <span class="project-emoji">${project.emoji}</span>
+        <span class="project-name">${project.name}</span>
+        <span class="project-badge"></span>
+      </div>
+
+      <div class="vision-box">
+        <div class="vision-label">🔭 Vision</div>
+        <div class="vision-text editable" contenteditable="false" data-field="vision" data-project="${project.id}">${project.vision || 'Klikni 2× pro editaci...'}</div>
+      </div>
+
+      <div class="target-box">
+        <div class="target-label">🎯 Další milník a cíl</div>
+        <div class="target-text editable" contenteditable="false" data-field="target" data-project="${project.id}">${project.target}</div>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-header">
+          <span class="progress-label">Postup</span>
+          <span class="progress-pct">${progress}%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 0%" data-target="${progress}"></div>
+        </div>
+      </div>
+
+      <div class="tasks-section">
+        ${activeTasks.map(t => renderTask(t)).join('')}
+      </div>
+
+      <button class="add-task-btn" onclick="showAddForm('${project.id}', this)">
+        <span>+</span> Přidat úkol
+      </button>
+
+      <div class="add-task-form" id="addForm-${project.id}">
+        <input class="add-task-input" id="addInput-${project.id}" type="text" placeholder="Název úkolu..." onkeydown="if(event.key==='Enter')addTask('${project.id}')" />
+        <div class="add-task-date-row">
+          <label>📅</label>
+          <button class="date-chip" data-project="${project.id}" data-days="1" onclick="selectDate('${project.id}','1',this)">Zítra</button>
+          <button class="date-chip" data-project="${project.id}" data-days="2" onclick="selectDate('${project.id}','2',this)">Pozítří</button>
+          <button class="date-chip" data-project="${project.id}" data-days="3" onclick="selectDate('${project.id}','3',this)">Za 3 dny</button>
+          <button class="date-chip" data-project="${project.id}" data-days="7" onclick="selectDate('${project.id}','7',this)">Za týden</button>
+          <input type="date" class="date-chip-exact" id="addDate-${project.id}" onchange="selectExactDate('${project.id}',this)" title="Přesné datum" />
+        </div>
+        <div class="add-task-actions">
+          <button class="add-task-toggle" id="addTop-${project.id}" onclick="toggleTop('${project.id}')" title="Označit jako TOP">⭐ TOP</button>
+          <button class="add-task-toggle" id="addRecurring-${project.id}" onclick="toggleRecurring('${project.id}')" title="Opakovaný úkol">🔁</button>
+          <button class="add-task-cancel" onclick="hideAddForm('${project.id}')">Zrušit</button>
+          <button class="add-task-submit" style="background:${project.color}" onclick="addTask('${project.id}')">Přidat</button>
+        </div>
+      </div>
+
+      <div class="done-today" data-project="${project.id}">
+        <div class="done-today-header">
+          ✅ Dokončené dnes
+          ${doneTodayTasks.length > 0 ? `<span class="done-today-count">${doneTodayTasks.length}</span>` : ''}
+        </div>
+        <div class="done-today-drop" data-done-project="${project.id}">
+          ${doneTodayTasks.length > 0
+            ? doneTodayTasks.map(t => renderTask(t)).join('')
+            : '<div class="done-today-empty">Přetáhni sem hotový úkol</div>'
+          }
+        </div>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+
+  // Animate progress bars
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      document.querySelectorAll('.progress-fill').forEach(bar => {
+        bar.style.width = bar.dataset.target + '%';
+      });
+    }, 400);
+  });
+
+  // Attach task click handlers
+  document.querySelectorAll('.task[data-has-notes="true"]').forEach(el => {
+    el.addEventListener('click', () => {
+      el.classList.toggle('expanded');
+    });
+  });
+
+  // Editable fields (double-click)
+  initEditable();
+
+  // Drag & Drop
+  initDragAndDrop();
+}
+
+/* ═══════════════════════════════════════════════════════
+   DRAG & DROP
+   ═══════════════════════════════════════════════════════ */
+
+let draggedTaskId = null;
+
+function initDragAndDrop() {
+  document.querySelectorAll('.task[draggable]').forEach(el => {
+    el.addEventListener('dragstart', (e) => {
+      draggedTaskId = el.dataset.taskId;
+      el.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', draggedTaskId);
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      draggedTaskId = null;
+      document.querySelectorAll('.project-card').forEach(c => c.classList.remove('drag-over'));
+    });
+  });
+
+  // Drop on project card (move task between projects)
+  document.querySelectorAll('.project-card').forEach(card => {
+    const projectId = card.dataset.projectId;
+
+    card.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      card.classList.add('drag-over');
+    });
+    card.addEventListener('dragleave', (e) => {
+      if (!card.contains(e.relatedTarget)) {
+        card.classList.remove('drag-over');
+      }
+    });
+    card.addEventListener('drop', (e) => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      if (draggedTaskId && projectId) {
+        const task = tasks.find(t => t.id === draggedTaskId);
+        if (task && task.project !== projectId) {
+          task.project = projectId;
+          render();
+          updateStats();
+          saveState();
+        }
+      }
+    });
+  });
+
+  // Drop on "Done today" zone (mark task as done)
+  document.querySelectorAll('.done-today-drop').forEach(zone => {
+    const projectId = zone.dataset.doneProject;
+
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'move';
+      zone.classList.add('drag-over-done');
+    });
+    zone.addEventListener('dragleave', (e) => {
+      if (!zone.contains(e.relatedTarget)) {
+        zone.classList.remove('drag-over-done');
+      }
+    });
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      zone.classList.remove('drag-over-done');
+      document.querySelectorAll('.project-card').forEach(c => c.classList.remove('drag-over'));
+      if (draggedTaskId) {
+        const task = tasks.find(t => t.id === draggedTaskId);
+        if (task) {
+          task.status = 'done';
+          task.completedAt = new Date().toISOString();
+          if (projectId && task.project !== projectId) {
+            task.project = projectId;
+          }
+          render();
+          updateStats();
+          saveState();
+        }
+      }
+    });
+  });
+}
+
+function saveState() {
+  const data = { tasks, lastUpdated: new Date().toISOString() };
+  // Save to server (JSON files on disk)
+  fetch('/api/save/tasks.json', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).catch(() => {});
+  // Fallback: localStorage
+  try { localStorage.setItem('missionHub_tasks', JSON.stringify(data)); } catch {}
+  document.getElementById('lastUpdated').textContent =
+    new Date().toLocaleString('cs-CZ', { timeZone: 'Asia/Makassar' });
+}
+
+function renderTask(task) {
+  const icon = STATUS_ICONS[task.status] || '⬜';
+  const isPulse = task.status === 'progress';
+  const isDone = task.status === 'done';
+  const hasNotes = !!task.notes;
+  const isTop = task.priority === 'high';
+  const isRecurring = task.recurring === true;
+
+  let badges = '';
+  if (isTop) badges += '<span class="priority-badge priority-high">⭐ TOP</span>';
+  if (isRecurring) badges += '<span class="priority-badge badge-recurring">🔁 Opakovaný</span>';
+
+  let dueHtml = '';
+  if (task.dueDate && !isDone) {
+    const due = new Date(task.dueDate + 'T00:00:00');
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diffDays = Math.round((due - today) / 86400000);
+    let dueClass = '';
+    let dueLabel = '';
+    if (diffDays < 0) { dueClass = 'overdue'; dueLabel = `⚠️ ${Math.abs(diffDays)}d po termínu`; }
+    else if (diffDays === 0) { dueClass = 'today'; dueLabel = '📅 Dnes'; }
+    else if (diffDays === 1) { dueClass = 'soon'; dueLabel = '📅 Zítra'; }
+    else if (diffDays <= 3) { dueClass = 'soon'; dueLabel = `📅 Za ${diffDays} dny`; }
+    else { dueLabel = `📅 ${due.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short' })}`; }
+    dueHtml = `<div class="task-due ${dueClass}">${dueLabel}</div>`;
+  }
+
+  const displayIcon = task.emoji || icon;
+
+  return `
+    <div class="task ${isDone ? 'done' : ''}" data-task-id="${task.id}" data-has-notes="${hasNotes}" draggable="true">
+      <span class="task-status ${isPulse ? 'pulse' : ''}">${displayIcon}</span>
+      <div class="task-content">
+        <div class="task-title">${escapeHtml(task.title)}</div>
+        ${badges ? `<div class="task-meta">${badges}</div>` : ''}
+        ${dueHtml}
+        ${hasNotes ? `<div class="task-notes">${escapeHtml(task.notes)}</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+/* ═══════════════════════════════════════════════════════
+   TOGGLE COMPLETED
+   ═══════════════════════════════════════════════════════ */
+
+function toggleCompleted() {
+  showCompleted = !showCompleted;
+  const btn = document.getElementById('toggleDone');
+  btn.textContent = showCompleted ? '👁 Skrýt dokončené' : '👁 Zobrazit dokončené';
+  render();
+}
+
+/* ═══════════════════════════════════════════════════════
+   EDITABLE FIELDS (double-click)
+   ═══════════════════════════════════════════════════════ */
+
+function initEditable() {
+  document.querySelectorAll('.editable').forEach(el => {
+    el.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      el.contentEditable = 'true';
+      el.focus();
+      // Select all text
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    });
+
+    el.addEventListener('blur', () => {
+      el.contentEditable = 'false';
+      const projectId = el.dataset.project;
+      const field = el.dataset.field;
+      const newValue = el.textContent.trim();
+      // Update in-memory data
+      const proj = projects.find(p => p.id === projectId);
+      if (proj && field) {
+        proj[field] = newValue;
+        saveProjectsState();
+      }
+    });
+
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        el.blur();
+      }
+      if (e.key === 'Escape') {
+        el.contentEditable = 'false';
+      }
+    });
+  });
+}
+
+function saveProjectsState() {
+  const data = { projects };
+  fetch('/api/save/projects.json', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).catch(() => {});
+  try { localStorage.setItem('missionHub_projects', JSON.stringify(data)); } catch {}
+}
+
+/* ═══════════════════════════════════════════════════════
+   ADD TASK
+   ═══════════════════════════════════════════════════════ */
+
+const addFormState = {};
+
+function showAddForm(projectId, btn) {
+  document.querySelectorAll('.add-task-form').forEach(f => f.classList.remove('visible'));
+  addFormState[projectId] = { top: false, recurring: false, dueDate: null };
+  const form = document.getElementById(`addForm-${projectId}`);
+  form.classList.add('visible');
+  const input = document.getElementById(`addInput-${projectId}`);
+  input.value = '';
+  input.focus();
+  // Reset toggle states
+  document.getElementById(`addTop-${projectId}`).classList.remove('active');
+  document.getElementById(`addRecurring-${projectId}`).classList.remove('active-recurring');
+  // Reset date chips
+  form.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
+  const dateInput = document.getElementById(`addDate-${projectId}`);
+  dateInput.value = '';
+  dateInput.classList.remove('active');
+}
+
+function selectDate(projectId, days, btn) {
+  if (!addFormState[projectId]) addFormState[projectId] = { top: false, recurring: false, dueDate: null };
+  const form = document.getElementById(`addForm-${projectId}`);
+  form.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
+  const dateInput = document.getElementById(`addDate-${projectId}`);
+  dateInput.value = '';
+  dateInput.classList.remove('active');
+
+  if (days === 'none') {
+    addFormState[projectId].dueDate = null;
+    btn.classList.add('active');
+  } else {
+    const d = new Date();
+    d.setDate(d.getDate() + parseInt(days));
+    const iso = d.toISOString().split('T')[0];
+    addFormState[projectId].dueDate = iso;
+    btn.classList.add('active');
+  }
+}
+
+function selectExactDate(projectId, input) {
+  if (!addFormState[projectId]) addFormState[projectId] = { top: false, recurring: false, dueDate: null };
+  const form = document.getElementById(`addForm-${projectId}`);
+  form.querySelectorAll('.date-chip').forEach(c => c.classList.remove('active'));
+
+  if (input.value) {
+    addFormState[projectId].dueDate = input.value;
+    input.classList.add('active');
+  } else {
+    addFormState[projectId].dueDate = null;
+    input.classList.remove('active');
+  }
+}
+
+function hideAddForm(projectId) {
+  document.getElementById(`addForm-${projectId}`).classList.remove('visible');
+}
+
+function toggleTop(projectId) {
+  if (!addFormState[projectId]) addFormState[projectId] = { top: false, recurring: false };
+  addFormState[projectId].top = !addFormState[projectId].top;
+  document.getElementById(`addTop-${projectId}`).classList.toggle('active');
+}
+
+function toggleRecurring(projectId) {
+  if (!addFormState[projectId]) addFormState[projectId] = { top: false, recurring: false };
+  addFormState[projectId].recurring = !addFormState[projectId].recurring;
+  document.getElementById(`addRecurring-${projectId}`).classList.toggle('active-recurring');
+}
+
+function pickEmoji(title) {
+  const t = title.toLowerCase();
+  const map = [
+    [/mail|email|gmail|inbox|zpráv/i, '📧'],
+    [/meet|schůz|call|zoom|hovor/i, '📞'],
+    [/doc|dokument|write|psát|text|article/i, '📝'],
+    [/design|figma|ui|ux|layout/i, '🎨'],
+    [/code|dev|program|api|bug|fix|script/i, '💻'],
+    [/web|stránk|site|page|deploy/i, '🌐'],
+    [/video|youtube|film|natáč/i, '🎬'],
+    [/foto|photo|image|obráz/i, '📸'],
+    [/present|keynote|slide|přednáš|talk/i, '🎤'],
+    [/strateg|plan|plán|roadmap|vision/i, '🗺️'],
+    [/finance|money|peníz|účet|platb|faktur|invoice|budget/i, '💰'],
+    [/market|reklam|promo|campaign|obsah|content/i, '📣'],
+    [/brand|logo|identit/i, '✨'],
+    [/team|tým|hiring|nábor|spolupráce|partner/i, '🤝'],
+    [/legal|smlouv|contract|práv/i, '⚖️'],
+    [/ship|launch|release|spusti|deploy/i, '🚀'],
+    [/research|výzkum|analýz|průzkum/i, '🔬'],
+    [/learn|kurz|vzdělá|study|kniha|book|read|číst/i, '📚'],
+    [/health|zdrav|fit|cvič|sport|gym|yoga|běh/i, '💪'],
+    [/food|jídlo|restau|recept|cook|vař/i, '🍽️'],
+    [/travel|cest|flight|let|hotel|trip/i, '✈️'],
+    [/home|dom|byt|clean|úklid/i, '🏠'],
+    [/shop|nákup|koupi|buy|objedn/i, '🛒'],
+    [/calend|event|událos|termin/i, '📅'],
+    [/ai|robot|auto|buddy|agent/i, '🤖'],
+    [/data|sheet|tabulk|csv|excel/i, '📊'],
+    [/secure|bezpeč|password|hesl/i, '🔒'],
+    [/setup|instal|config|nastav/i, '⚙️'],
+    [/test|ověř|check|kontrol/i, '✅'],
+    [/info|předat|sdíl|share|send|posl/i, '📨'],
+    [/review|projít|zkontrol/i, '👀'],
+    [/idea|nápad|brainstorm/i, '💡'],
+    [/celebr|oslav|party/i, '🎉'],
+    [/retreat|meditat|soul|duch|spirit|chrám|temple/i, '🧘'],
+  ];
+  for (const [regex, emoji] of map) {
+    if (regex.test(t)) return emoji;
+  }
+  return '📌';
+}
+
+function addTask(projectId) {
+  const input = document.getElementById(`addInput-${projectId}`);
+  const title = input.value.trim();
+  if (!title) return;
+
+  const state = addFormState[projectId] || { top: false, recurring: false, dueDate: null };
+  const emoji = pickEmoji(title);
+  const newTask = {
+    id: 't' + String(Date.now()).slice(-6),
+    title: title,
+    project: projectId,
+    status: 'inbox',
+    priority: state.top ? 'high' : 'normal',
+    emoji: emoji,
+    createdAt: new Date().toISOString()
+  };
+  if (state.recurring) newTask.recurring = true;
+  if (state.dueDate) newTask.dueDate = state.dueDate;
+
+  tasks.push(newTask);
+  render();
+  updateStats();
+  saveState();
+}
+
+/* ═══════════════════════════════════════════════════════
+   BOOT
+   ═══════════════════════════════════════════════════════ */
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
